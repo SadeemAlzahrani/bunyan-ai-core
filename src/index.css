@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bunyan AI design system — Navy Trust + Urbanist/Epilogue. All HSL. */
+
+@layer base {
+  :root {
+    --background: 210 40% 99%;
+    --foreground: 222 60% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 60% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 60% 12%;
+
+    /* Navy primary (logo deep navy) */
+    --primary: 222 60% 15%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Bright blue accent (logo bright blue) */
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 217 91% 96%;
+
+    --secondary: 217 33% 96%;
+    --secondary-foreground: 222 60% 15%;
+
+    --muted: 215 30% 95%;
+    --muted-foreground: 215 18% 42%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 60% 40%;
+    --warning: 38 92% 50%;
+
+    --border: 215 28% 90%;
+    --input: 215 28% 90%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.875rem;
+
+    /* Brand surfaces */
+    --navy-deep: 222 60% 15%;
+    --navy: 218 55% 26%;
+    --blue-bright: 217 91% 60%;
+    --surface-tint: 217 60% 98%;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(222 60% 12%) 0%, hsl(218 55% 22%) 50%, hsl(217 70% 32%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(220 85% 50%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(217 60% 99%) 0%, hsl(217 40% 96%) 100%);
+    --gradient-mesh: radial-gradient(at 20% 0%, hsl(217 91% 60% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(218 55% 26% / 0.20) 0px, transparent 50%),
+                     radial-gradient(at 50% 100%, hsl(217 91% 60% / 0.10) 0px, transparent 50%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(222 60% 15% / 0.04);
+    --shadow-card: 0 1px 3px 0 hsl(222 60% 15% / 0.05), 0 1px 2px 0 hsl(222 60% 15% / 0.03);
+    --shadow-elevated: 0 12px 32px -8px hsl(222 60% 15% / 0.12), 0 4px 12px -4px hsl(222 60% 15% / 0.06);
+    --shadow-glow: 0 20px 60px -20px hsl(217 91% 60% / 0.4);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Sidebar */
+    --sidebar-background: 222 60% 12%;
+    --sidebar-foreground: 215 25% 75%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 50% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 45% 20%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 45% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 45% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 60% 8%;
+
+    --secondary: 222 35% 16%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 35% 16%;
+    --muted-foreground: 215 20% 70%;
+
+    --accent: 217 91% 62%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 217 60% 18%;
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 55% 50%;
+    --warning: 38 90% 58%;
+
+    --border: 222 35% 20%;
+    --input: 222 35% 20%;
+    --ring: 217 91% 60%;
+
+    --navy-deep: 222 60% 8%;
+    --navy: 218 50% 18%;
+    --blue-bright: 217 91% 62%;
+    --surface-tint: 222 45% 11%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(222 60% 6%) 0%, hsl(218 55% 14%) 50%, hsl(217 70% 22%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(222 45% 10%) 0%, hsl(222 45% 8%) 100%);
+    --gradient-mesh: radial-gradient(at 20% 0%, hsl(217 91% 60% / 0.18) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(218 55% 50% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 50% 100%, hsl(217 91% 60% / 0.12) 0px, transparent 50%);
+
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.4), 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-elevated: 0 12px 32px -8px hsl(0 0% 0% / 0.5), 0 4px 12px -4px hsl(0 0% 0% / 0.3);
+
+    --sidebar-background: 222 50% 6%;
+    --sidebar-foreground: 215 25% 80%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 40% 16%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Epilogue', system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  html[dir="rtl"] body {
+    font-family: 'Cairo', 'Epilogue', system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Urbanist', system-ui, sans-serif;
+    @apply tracking-tight;
+  }
+  html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3,
+  html[dir="rtl"] h4, html[dir="rtl"] h5, html[dir="rtl"] h6 {
+    font-family: 'Cairo', 'Urbanist', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: 'Urbanist', system-ui, sans-serif; }
+  .font-body { font-family: 'Epilogue', system-ui, sans-serif; }
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-accent { background: var(--gradient-accent); }
+  .bg-gradient-soft { background: var(--gradient-soft); }
+  .bg-gradient-mesh { background: var(--gradient-mesh); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+  .transition-smooth { transition: var(--transition-smooth); }
+  .text-gradient {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .grid-pattern {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-fade-up { animation: fade-up 0.7s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.animate-fade-in { animation: fade-in 0.8s ease-out both; }
+.animate-float { animation: float 6s ease-in-out infinite; }
