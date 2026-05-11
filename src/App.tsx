@@ -3,6 +3,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import MFASetup from "@/pages/auth/MFASetup";
+import MFAVerify from "@/pages/auth/MFAVerify";
+
 import SiteLayout from "@/components/site/SiteLayout";
 import TranslatedAppShell from "@/components/app/TranslatedAppShell";
 
@@ -12,7 +15,11 @@ import Security from "@/pages/site/Security";
 import Pricing from "@/pages/site/Pricing";
 import Contact from "@/pages/site/Contact";
 import RequestDemo from "@/pages/site/RequestDemo";
+
 import Login from "@/pages/auth/Login";
+import ChangePasswordPage from "@/pages/auth/ChangePasswordPage";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+
 
 import SuperAdminDashboard from "@/pages/admin/SuperAdminDashboard";
 import TenantsPage from "@/pages/admin/TenantsPage";
@@ -37,6 +44,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Sonner />
+
       <BrowserRouter>
         <Routes>
           {/* Public marketing site */}
@@ -50,7 +58,24 @@ const App = () => (
           </Route>
 
           {/* Auth */}
-          <Route path="/login" element={<Login />} />
+         <Route path="/login" element={<Login />} />
+
+         <Route
+         path="/forgot-password"
+         element={<ForgotPassword />}
+         />
+
+         <Route
+         path="/reset-password"
+         element={<ChangePasswordPage />}
+         />
+
+         <Route
+         path="/change-password"
+         element={<ChangePasswordPage />}
+         />
+        <Route path="/mfa-setup" element={<MFASetup />} />
+        <Route path="/mfa-verify" element={<MFAVerify />} />
 
           {/* Super Admin Portal */}
           <Route
@@ -74,34 +99,96 @@ const App = () => (
             <Route path="/admin/plans" element={<PlansPage />} />
             <Route path="/admin/usage" element={<UsagePage />} />
             <Route path="/admin/audit" element={<AuditPage />} />
-            <Route path="/admin/security" element={<SecuritySettingsPage />} />
+            <Route
+              path="/admin/security"
+              element={<SecuritySettingsPage />}
+            />
           </Route>
 
-          {/* Shared Company Workspace — gated per-role via permissions */}
+          {/* Shared Company Workspace */}
           <Route
             element={
               <TranslatedAppShell
-                expectedRole={["company_admin", "project_manager", "project_engineer"]}
+                expectedRole={[
+                  "company_admin",
+                  "project_manager",
+                  "project_engineer",
+                ]}
                 workspaceName="NorthBuild Construction"
                 navSpec={[
-                  { to: "/workspace", labelKey: "workspaceNav.overview", permission: "viewDashboard" },
-                  { to: "/workspace/users", labelKey: "workspaceNav.users", permission: "viewUsers" },
-                  { to: "/workspace/projects", labelKey: "workspaceNav.projects", permission: "viewProjects" },
-                  { to: "/workspace/contracts", labelKey: "workspaceNav.contracts", permission: "viewContracts" },
-                  { to: "/workspace/issues", labelKey: "workspaceNav.issues", permission: "viewIssues" },
-                  { to: "/workspace/reports", labelKey: "workspaceNav.reports", permission: "viewReports" },
-                  { to: "/workspace/settings", labelKey: "workspaceNav.settings", permission: "viewSettings" },
+                  {
+                    to: "/workspace",
+                    labelKey: "workspaceNav.overview",
+                    permission: "viewDashboard",
+                  },
+                  {
+                    to: "/workspace/users",
+                    labelKey: "workspaceNav.users",
+                    permission: "viewUsers",
+                  },
+                  {
+                    to: "/workspace/projects",
+                    labelKey: "workspaceNav.projects",
+                    permission: "viewProjects",
+                  },
+                  {
+                    to: "/workspace/contracts",
+                    labelKey: "workspaceNav.contracts",
+                    permission: "viewContracts",
+                  },
+                  {
+                    to: "/workspace/issues",
+                    labelKey: "workspaceNav.issues",
+                    permission: "viewIssues",
+                  },
+                  {
+                    to: "/workspace/reports",
+                    labelKey: "workspaceNav.reports",
+                    permission: "viewReports",
+                  },
+                  {
+                    to: "/workspace/settings",
+                    labelKey: "workspaceNav.settings",
+                    permission: "viewSettings",
+                  },
                 ]}
               />
             }
           >
-            <Route path="/workspace" element={<WorkspaceDashboard />} />
-            <Route path="/workspace/users" element={<WorkspaceUsersPage />} />
-            <Route path="/workspace/projects" element={<WorkspaceProjectsPage />} />
-            <Route path="/workspace/contracts" element={<WorkspaceContractsPage />} />
-            <Route path="/workspace/issues" element={<WorkspaceIssuesPage />} />
-            <Route path="/workspace/reports" element={<WorkspaceReportsPage />} />
-            <Route path="/workspace/settings" element={<WorkspaceSettingsPage />} />
+            <Route
+              path="/workspace"
+              element={<WorkspaceDashboard />}
+            />
+
+            <Route
+              path="/workspace/users"
+              element={<WorkspaceUsersPage />}
+            />
+
+            <Route
+              path="/workspace/projects"
+              element={<WorkspaceProjectsPage />}
+            />
+
+            <Route
+              path="/workspace/contracts"
+              element={<WorkspaceContractsPage />}
+            />
+
+            <Route
+              path="/workspace/issues"
+              element={<WorkspaceIssuesPage />}
+            />
+
+            <Route
+              path="/workspace/reports"
+              element={<WorkspaceReportsPage />}
+            />
+
+            <Route
+              path="/workspace/settings"
+              element={<WorkspaceSettingsPage />}
+            />
           </Route>
 
           <Route path="*" element={<NotFound />} />
@@ -111,4 +198,7 @@ const App = () => (
   </QueryClientProvider>
 );
 
+
 export default App;
+
+

@@ -29,10 +29,10 @@ const SettingsPage = () => {
       }
       // Update company name (admin only).
       if (isAdmin && user.companyId && orgName && orgName !== (user.companyName ?? "")) {
-        const { error } = await supabase.from("companies").update({ name: orgName }).eq("id", user.companyId);
+        const { error } = await supabase.from("companies").update({ company_name: orgName } as any).eq("id", user.companyId);
         if (error) throw error;
       }
-      toast.success("Settings saved.");
+            toast.success("Settings saved.");
       await refresh();
     } catch (err) {
       toast.error((err as Error).message || "Failed to save.");

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, ArrowLeft } from "lucide-react";
@@ -10,36 +11,115 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { signIn, roleHome } from "@/lib/auth";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (user) navigate(roleHome(user.role), { replace: true });
+    if (!user) return;
+
+    if (user.mustChangePassword) {
+      navigate("/change-password", { replace: true });
+      return;
+    }
+
+    navigate(roleHome(user.role), { replace: true });
   }, [user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     const { error } = await signIn(email, password);
-    setLoading(false);
+
     if (error) {
-      toast.error(t("login.invalidCredentials"));
+      setLoading(false);
+      toast.error(error || "Login failed");
+      console.log("LOGIN ERROR:", error);
       return;
     }
-    toast.success(t("login.welcome"));
-  };
 
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (!authUser?.email) {
+      setLoading(false);
+      toast.error("Login failed. User profile was not found.");
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select(`
+        role,
+        must_change_password,
+        company_id,
+        companies (
+          mfa_required
+        )
+      `)
+      .eq("email", authUser.email)
+      .maybeSingle();
+
+    setLoading(false);
+
+    if (profileError || !profile) {
+      toast.error("Login failed. User profile was not found.");
+      return;
+    }
+
+    toast.success(t("login.welcome"));
+
+if (profile.must_change_password) {
+  navigate("/change-password", { replace: true });
+  return;
+}
+
+const needsMFA =
+  profile?.companies?.mfa_required === true &&
+  profile.role !== "super_admin";
+
+if (needsMFA) {
+  const { data: assurance } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (assurance?.currentLevel !== "aal2") {
+    const { data: factorsData } =
+      await supabase.auth.mfa.listFactors();
+
+    const verifiedFactor = factorsData?.totp?.find(
+      (factor) => factor.status === "verified"
+    );
+
+    setLoading(false);
+
+    if (verifiedFactor) {
+      navigate("/mfa-verify", { replace: true });
+    } else {
+      navigate("/mfa-setup", { replace: true });
+    }
+
+    return;
+  }
+}
+
+navigate(roleHome(profile.role), { replace: true });
+  };
+  
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       <div className="hidden lg:flex relative bg-gradient-hero text-primary-foreground p-12 flex-col justify-between overflow-hidden">
         <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
         <div className="absolute inset-0 grid-pattern opacity-[0.04]" />
+
         <div className="relative">
           <Logo variant="light" />
         </div>
@@ -53,9 +133,14 @@ const Login = () => {
             <div className="h-11 w-11 rounded-full bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center font-display font-semibold">
               KR
             </div>
+
             <div>
-              <p className="font-display font-semibold">{t("login.quoteAuthor")}</p>
-              <p className="text-sm text-primary-foreground/60">{t("login.quoteTitle")}</p>
+              <p className="font-display font-semibold">
+                {t("login.quoteAuthor")}
+              </p>
+              <p className="text-sm text-primary-foreground/60">
+                {t("login.quoteTitle")}
+              </p>
             </div>
           </div>
         </div>
@@ -69,25 +154,57 @@ const Login = () => {
         <div className="absolute top-4 end-4">
           <PreferenceToggles />
         </div>
+
         <div className="w-full max-w-md mx-auto">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 mb-8">
-            <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" /> {t("common.backToSite")}
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 mb-8"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" />
+            {t("common.backToSite")}
           </Link>
-          <div className="lg:hidden mb-8"><Logo /></div>
-          <h1 className="font-display font-bold text-3xl md:text-4xl tracking-tight">{t("login.signIn")}</h1>
-          <p className="mt-2 text-muted-foreground">{t("login.accessSubtitle")}</p>
+
+          <div className="lg:hidden mb-8">
+            <Logo />
+          </div>
+
+          <h1 className="font-display font-bold text-3xl md:text-4xl tracking-tight">
+            {t("login.signIn")}
+          </h1>
+
+          <p className="mt-2 text-muted-foreground">
+            {t("login.accessSubtitle")}
+          </p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="email">{t("login.workEmail")}</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="rounded-xl h-11" placeholder={t("login.emailPlaceholder")} />
+
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="rounded-xl h-11"
+                placeholder={t("login.emailPlaceholder")}
+              />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t("login.password")}</Label>
-                <a href="#" className="text-xs text-accent hover:underline">{t("login.forgot")}</a>
+                <Label htmlFor="password">
+                  {t("login.password")}
+                </Label>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-accent hover:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
+
               <Input
                 id="password"
                 type="password"
@@ -97,14 +214,24 @@ const Login = () => {
                 className="rounded-xl h-11"
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-11 rounded-full bg-gradient-accent text-accent-foreground border-0 shadow-card">
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-full bg-gradient-accent text-accent-foreground border-0 shadow-card"
+            >
               {loading ? t("login.signingIn") : t("login.signIn")}
             </Button>
           </form>
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
             {t("login.noAccount")}{" "}
-            <Link to="/contact" className="text-accent font-medium hover:underline">{t("login.contactSales")}</Link>
+            <Link
+              to="/contact"
+              className="text-accent font-medium hover:underline"
+            >
+              {t("login.contactSales")}
+            </Link>
           </p>
         </div>
       </div>
@@ -113,3 +240,4 @@ const Login = () => {
 };
 
 export default Login;
+

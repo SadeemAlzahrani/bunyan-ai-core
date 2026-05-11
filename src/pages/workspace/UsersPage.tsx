@@ -34,7 +34,7 @@ const UsersPage = () => {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    let q = supabase.from("users").select("id, full_name, email, role, is_active, created_at");
+    let q = supabase.from("users").select("id, full_name, email, role, is_active, created_at")
     if (user.role !== "super_admin" && user.companyId) q = q.eq("company_id", user.companyId);
     const { data, error } = await q.order("created_at", { ascending: false });
     if (error) toast.error(error.message);

@@ -1,15 +1,71 @@
+import { useEffect, useMemo, useState } from "react";
 import { Sparkles, Activity, TrendingUp, Building2 } from "lucide-react";
 import StatCard from "@/components/app/StatCard";
 import PageHeader from "@/components/app/PageHeader";
-import { monthlyAiUsage, tenants } from "@/lib/admin-data";
+import { monthlyAiUsage } from "@/lib/admin-data";
+import { supabase } from "@/integrations/supabase/client";
 
 const fmt = (n: number) => n.toLocaleString();
 
+type TenantUsage = {
+  id: string;
+  name: string;
+  plan: string;
+  monthlyAi: number;
+};
+
 const UsagePage = () => {
-  const total = tenants.reduce((s, t) => s + t.monthlyAi, 0);
-  const max = Math.max(...monthlyAiUsage.map((m) => m.value));
-  const sortedTenants = [...tenants].sort((a, b) => b.monthlyAi - a.monthlyAi);
-  const tenantMax = Math.max(...sortedTenants.map((t) => t.monthlyAi));
+  const [tenantUsage, setTenantUsage] = useState<TenantUsage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTenantUsage = async () => {
+      setLoading(true);
+
+      const { data, error } = await supabase
+  .from("companies")
+  .select("id, name, plan")
+  .order("name", { ascending: true });
+
+      if (error) {
+        console.error("Failed to load tenant usage:", error);
+        setTenantUsage([]);
+        setLoading(false);
+        return;
+      }
+
+      const mappedTenants: TenantUsage[] = (data ?? []).map((company) => ({
+        id: company.id,
+        name: company.name,
+        plan: (company.subscription_plan ?? "starter")
+        .charAt(0).toUpperCase() + company.subscription_plan.slice(1),
+        monthlyAi: 0,
+      }));
+
+      setTenantUsage(mappedTenants);
+      setLoading(false);
+    };
+
+    loadTenantUsage();
+  }, []);
+
+  const total = useMemo(
+    () => tenantUsage.reduce((sum, tenant) => sum + tenant.monthlyAi, 0),
+    [tenantUsage]
+  );
+
+  const avgPerTenant = tenantUsage.length
+    ? Math.round(total / tenantUsage.length)
+    : 0;
+
+  const max = Math.max(...monthlyAiUsage.map((m) => m.value), 1);
+
+  const sortedTenants = useMemo(
+    () => [...tenantUsage].sort((a, b) => b.monthlyAi - a.monthlyAi),
+    [tenantUsage]
+  );
+
+  const tenantMax = Math.max(...sortedTenants.map((t) => t.monthlyAi), 1);
 
   return (
     <>
@@ -20,25 +76,69 @@ const UsagePage = () => {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="AI analyses (mo)" value={fmt(total)} delta="+12% vs last month" icon={Sparkles} />
-        <StatCard label="API calls (24h)" value="284k" delta="Within capacity" icon={Activity} trend="neutral" />
-        <StatCard label="Avg per tenant" value={fmt(Math.round(total / tenants.length))} delta="Across all plans" icon={Building2} trend="neutral" />
-        <StatCard label="Growth" value="12%" delta="Month over month" icon={TrendingUp} />
+        <StatCard
+          label="AI analyses (mo)"
+          value={fmt(total)}
+          delta="Tracked from connected tenants"
+          icon={Sparkles}
+          trend="neutral"
+        />
+
+        <StatCard
+          label="API calls (24h)"
+          value="0"
+          delta="Connect AI logs to activate"
+          icon={Activity}
+          trend="neutral"
+        />
+
+        <StatCard
+          label="Avg per tenant"
+          value={fmt(avgPerTenant)}
+          delta={`${tenantUsage.length} tenant${tenantUsage.length === 1 ? "" : "s"}`}
+          icon={Building2}
+          trend="neutral"
+        />
+
+        <StatCard
+          label="Growth"
+          value="0%"
+          delta="Requires usage history"
+          icon={TrendingUp}
+          trend="neutral"
+        />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 bg-card border border-border rounded-2xl shadow-card p-6">
-          <h2 className="font-display font-semibold text-lg">AI processing trend</h2>
-          <p className="text-sm text-muted-foreground">Monthly analyses (thousands), last 12 months</p>
-          <div className="mt-6 h-64 flex items-end gap-2">
+          <h2 className="font-display font-semibold text-lg">
+            AI processing trend
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Monthly analyses (thousands), last 12 months
+          </p>
+
+          <div className="mt-6 h-64 flex items-end gap-2 border-b border-border">
             {monthlyAiUsage.map((m) => (
-              <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
-                <span className="text-[10px] text-muted-foreground tabular-nums">{m.value}k</span>
+              <div
+                key={m.month}
+                className="flex-1 flex flex-col items-center gap-2"
+              >
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {m.value}k
+                </span>
+
                 <div
                   className="w-full bg-gradient-to-t from-accent to-accent/40 rounded-md hover:opacity-80 transition-smooth"
-                  style={{ height: `${(m.value / max) * 100}%`, minHeight: "4px" }}
+                  style={{
+                    height: `${(m.value / max) * 220}px`,
+                    minHeight: "6px",
+                  }}
                 />
-                <span className="text-[10px] text-muted-foreground font-medium">{m.month}</span>
+
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {m.month}
+                </span>
               </div>
             ))}
           </div>
@@ -47,45 +147,97 @@ const UsagePage = () => {
         <div className="bg-card border border-border rounded-2xl shadow-card p-6">
           <h2 className="font-display font-semibold text-lg">System health</h2>
           <p className="text-sm text-muted-foreground">Last 24 hours</p>
+
           <dl className="mt-5 space-y-4 text-sm">
-            <div className="flex justify-between"><dt className="text-muted-foreground">Uptime</dt><dd className="font-semibold text-success">99.98%</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Avg latency</dt><dd className="font-semibold">142 ms</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Error rate</dt><dd className="font-semibold">0.04%</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Active sessions</dt><dd className="font-semibold">1,284</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Queue depth</dt><dd className="font-semibold">12</dd></div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Uptime</dt>
+              <dd className="font-semibold text-success">99.98%</dd>
+            </div>
+
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Avg latency</dt>
+              <dd className="font-semibold">142 ms</dd>
+            </div>
+
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Error rate</dt>
+              <dd className="font-semibold">0.04%</dd>
+            </div>
+
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Active sessions</dt>
+              <dd className="font-semibold">1,284</dd>
+            </div>
+
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Queue depth</dt>
+              <dd className="font-semibold">12</dd>
+            </div>
           </dl>
         </div>
       </div>
 
-      {/* Per-tenant usage */}
       <div className="mt-8 bg-card border border-border rounded-2xl shadow-card overflow-hidden">
         <div className="p-6 border-b border-border">
-          <h2 className="font-display font-semibold text-lg">Per-tenant AI usage</h2>
-          <p className="text-sm text-muted-foreground">Ranked by monthly analyses</p>
+          <h2 className="font-display font-semibold text-lg">
+            Per-tenant AI usage
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Companies loaded from Supabase. Usage counters are ready for AI logs.
+          </p>
         </div>
+
         <div className="divide-y divide-border">
-          {sortedTenants.map((t) => (
-            <div key={t.id} className="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-secondary/30 transition-smooth">
-              <div className="col-span-4 flex items-center gap-3 min-w-0">
-                <div className="h-9 w-9 rounded-xl bg-accent-soft flex items-center justify-center shrink-0">
-                  <Building2 className="h-4 w-4 text-accent" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.plan}</p>
-                </div>
-              </div>
-              <div className="col-span-6">
-                <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                  <div className="h-full bg-gradient-accent" style={{ width: `${(t.monthlyAi / tenantMax) * 100}%` }} />
-                </div>
-              </div>
-              <div className="col-span-2 text-right">
-                <p className="font-display font-semibold tabular-nums">{fmt(t.monthlyAi)}</p>
-                <p className="text-xs text-muted-foreground">analyses</p>
-              </div>
+          {loading ? (
+            <div className="px-6 py-6 text-sm text-muted-foreground">
+              Loading tenant usage...
             </div>
-          ))}
+          ) : sortedTenants.length === 0 ? (
+            <div className="px-6 py-6 text-sm text-muted-foreground">
+              No tenants found in database.
+            </div>
+          ) : (
+            sortedTenants.map((tenant) => (
+              <div
+                key={tenant.id}
+                className="px-6 py-4 grid grid-cols-12 gap-4 items-center hover:bg-secondary/30 transition-smooth"
+              >
+                <div className="col-span-4 flex items-center gap-3 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-accent-soft flex items-center justify-center shrink-0">
+                    <Building2 className="h-4 w-4 text-accent" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{tenant.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {tenant.plan}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="col-span-6">
+                  <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-accent"
+                      style={{
+                        width:
+                          tenant.monthlyAi === 0
+                            ? "0%"
+                            : `${(tenant.monthlyAi / tenantMax) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="col-span-2 text-right">
+                  <p className="font-display font-semibold tabular-nums">
+                    {fmt(tenant.monthlyAi)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">analyses</p>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </>

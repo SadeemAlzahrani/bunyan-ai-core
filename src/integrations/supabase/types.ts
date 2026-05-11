@@ -20,21 +20,27 @@ export type Database = {
           headquarters_city: string | null
           id: string
           industry: string | null
+          is_active: boolean | null
           name: string
+          subscription_plan: string | null
         }
         Insert: {
           created_at?: string | null
           headquarters_city?: string | null
           id?: string
           industry?: string | null
+          is_active?: boolean | null
           name: string
+          subscription_plan?: string | null
         }
         Update: {
           created_at?: string | null
           headquarters_city?: string | null
           id?: string
           industry?: string | null
+          is_active?: boolean | null
           name?: string
+          subscription_plan?: string | null
         }
         Relationships: []
       }
@@ -419,6 +425,7 @@ export type Database = {
           job_title: string | null
           phone: string | null
           role: string
+          must_change_password: boolean
         }
         Insert: {
           company_id?: string | null
@@ -430,6 +437,7 @@ export type Database = {
           job_title?: string | null
           phone?: string | null
           role: string
+          must_change_password: boolean
         }
         Update: {
           company_id?: string | null
@@ -441,6 +449,7 @@ export type Database = {
           job_title?: string | null
           phone?: string | null
           role?: string
+          must_change_password: boolean
         }
         Relationships: [
           {
